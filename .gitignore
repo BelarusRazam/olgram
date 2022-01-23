@@ -10,3 +10,5 @@ docs/build
 ad.md
 release.env
 test.py
+database
+redis-db
