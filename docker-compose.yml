@@ -24,11 +24,12 @@ services:
       - olgram
 
   olgram:
+    image: olgram:dev
     build: .
     restart: unless-stopped
     env_file:
       - .env
-    volumes:
+#    volumes:
 #      - ./olgram-cert:/cert
 #      - ./main.py:/app/main.py
 #      - ./server/server.py:/app/server/server.py
