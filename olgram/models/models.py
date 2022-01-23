@@ -72,3 +72,14 @@ class GroupChat(Model):
 
     class Meta:
         table = 'group_chat'
+
+
+class BannedUser(Model):
+    id = fields.BigIntField(pk=True)
+    telegram_id = fields.BigIntField(index=True)
+    username = fields.CharField(max_length=100, default=None, null=True)
+
+    bot = fields.ForeignKeyField("models.Bot", related_name="banned_users", on_delete=fields.relational.CASCADE)
+
+    class Meta:
+        table = "bot_banned_user"

@@ -10,11 +10,11 @@ from aioredis import Redis
 import logging
 import typing as ty
 from olgram.settings import ServerSettings
-from olgram.models.models import Bot, GroupChat
+from olgram.models.models import Bot, GroupChat, BannedUser
 
 
-logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
+_logger.setLevel(logging.INFO)
 
 db_bot_instance: ContextVar[Bot] = ContextVar('db_bot_instance')
 
@@ -34,7 +34,7 @@ async def message_handler(message: types.Message, *args, **kwargs):
     _logger.info("message handler")
     bot = db_bot_instance.get()
 
-    if message.text and message.text.startswith("/start"):
+    if message.text and message.text == "/start":
         # На команду start нужно ответить, не пересылая сообщение никуда
         return SendMessage(chat_id=message.chat.id,
                            text=bot.start_text + ServerSettings.append_text())
@@ -42,7 +42,15 @@ async def message_handler(message: types.Message, *args, **kwargs):
     super_chat_id = await bot.super_chat_id()
 
     if message.chat.id != super_chat_id:
-        # Это обычный чат: сообщение нужно переслать в супер-чат
+        # Это обычный чат
+
+        # Проверить, не забанен ли пользователь
+        banned = await bot.banned_users.filter(telegram_id=message.chat.id)
+        if banned:
+            return SendMessage(chat_id=message.chat.id,
+                               text="Вы заблокированы в этом боте")
+
+        # сообщение нужно переслать в супер-чат
         new_message = await message.forward(super_chat_id)
         await _redis.set(_message_unique_id(bot.pk, new_message.message_id), message.chat.id)
 
@@ -62,6 +70,20 @@ async def message_handler(message: types.Message, *args, **kwargs):
                                        text="<i>Невозможно переслать сообщение: автор не найден</i>",
                                        parse_mode="HTML")
             chat_id = int(chat_id)
+
+            if message.text == "/ban":
+                user, _ = await BannedUser.get_or_create(telegram_id=chat_id, bot=bot)
+                await user.save()
+                return SendMessage(chat_id=message.chat.id, text="Пользователь заблокирован")
+
+            if message.text == "/unban":
+                banned_user = await bot.banned_users.filter(telegram_id=chat_id).first()
+                if not banned_user:
+                    return SendMessage(chat_id=message.chat.id, text="Пользователь не был забанен")
+                else:
+                    await banned_user.delete()
+                    return SendMessage(chat_id=message.chat.id, text="Пользователь разбанен")
+
             try:
                 await message.copy_to(chat_id)
             except (exceptions.MessageError, exceptions.BotBlocked):

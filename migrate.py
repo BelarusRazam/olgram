@@ -1,8 +1,5 @@
 import asyncio
-import logging
 from olgram.migrations.custom import migrate
-
-logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == '__main__':

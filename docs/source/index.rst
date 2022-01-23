@@ -15,6 +15,7 @@
    about
    quick_start
    developer
+   additional
 
 .. note::
 

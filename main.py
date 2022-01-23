@@ -15,9 +15,6 @@ import olgram.commands.info  # noqa: F401
 
 from server.server import main as server_main
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 
 async def init_database():
     await Tortoise.init(config=TORTOISE_ORM)
