@@ -237,12 +237,15 @@ REDIS_PATH=redis://redis
     def app_host(cls) -> str:
         return "*"
 ```
+
 **Запускаем сервис:**
-35. `cd ~/olgram && docker-compose up -d`
+
+34. `cd ~/olgram && docker-compose up -d`
 
 В самом хорошем варианте - это всё. Можно заходить в телеграм и настраивать/добавлять ботов.
 
-Полезные команды:
+**Полезные команды:**
+
 * `docker ps -a`
 * `docker logs -f traefik`
 * `docker logs -f olgram_olgram_1`
