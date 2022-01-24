@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from abc import ABC
-import os
+import os, logging
 from olgram.utils.crypto import Cryptor
 from functools import lru_cache
 
@@ -55,10 +55,6 @@ class ServerSettings(AbstractSettings):
         return int(cls._get_env("WEBHOOK_PORT"))
 
     @classmethod
-    def app_host(cls) -> str:
-        return "olgram"
-
-    @classmethod
     def app_port(cls) -> int:
         return 80
 
@@ -87,6 +83,7 @@ class ServerSettings(AbstractSettings):
     def append_text(cls) -> str:
         return "\n\nЭтот бот создан с помощью @OlgramBot"
 
+    logging.basicConfig(level=logging.DEBUG)
 
 class BotSettings(AbstractSettings):
     @classmethod

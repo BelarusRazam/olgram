@@ -65,5 +65,5 @@ def main():
     runner = web.AppRunner(app)
     loop.run_until_complete(runner.setup())
     logger.info("Server initialization done")
-    site = web.TCPSite(runner, host=ServerSettings.app_host(), port=ServerSettings.app_port(), ssl_context=context)
+    site = web.TCPSite(runner, port=ServerSettings.app_port(), ssl_context=context)
     return site

@@ -12,3 +12,4 @@ release.env
 test.py
 database
 redis-db
+docker-compose.yml
