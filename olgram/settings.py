@@ -83,7 +83,7 @@ class ServerSettings(AbstractSettings):
     def append_text(cls) -> str:
         return "\n\nЭтот бот создан с помощью @OlgramBot"
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 class BotSettings(AbstractSettings):
     @classmethod
