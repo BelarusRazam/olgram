@@ -95,9 +95,9 @@ sudo docker-compose up -d
 
 **Перелогиниваемся под `tguser`**
 
-25. `docker network create traefik`
-26. `mkdir ~/traefik; touch ~/traefik/docker-compose.yml`
-27. в редакторе правим файл: `mcedit ~/traefik/docker-compose.yml`:
+24. `docker network create traefik`
+25. `mkdir ~/traefik; touch ~/traefik/docker-compose.yml`
+26. в редакторе правим файл: `mcedit ~/traefik/docker-compose.yml`:
 ```
 version: '3.7'
 
@@ -138,9 +138,9 @@ networks:
     external: true
 ```
 
-28. `git clone https://github.com/civsocit/olgram`
-29. `cd ~/olgram`
-30. `mcedit ~/docker-compose.yml`:
+27. `git clone https://github.com/civsocit/olgram`
+28. `cd ~/olgram`
+29. `mcedit ~/docker-compose.yml`:
 ```
 version: '3'
 
@@ -195,8 +195,8 @@ networks:
   olgram:
 ```
 
-31. `mkdir redis-db && sudo chown -R 1001:1001 redis-db/`  # твик для нормального запуска redis
-32. `mcedit .env`:
+30. `mkdir redis-db && sudo chown -R 1001:1001 redis-db/`  # твик для нормального запуска redis
+31. `mcedit .env`:
 ```
 # example: 123456789:AAAA-abc123_AbcdEFghijKLMnopqrstu12 (without quotes!)
 BOT_TOKEN=<токен бота для сервиса из @botfather>
@@ -232,7 +232,7 @@ WEBHOOK_PORT=8443
 # не трогаем
 REDIS_PATH=redis://redis
 ```
-33. `mcedit ~/olgram/olgram/settings.py` и ставим `*` вместо `olgram`, строка 59:
+32. `mcedit ~/olgram/olgram/settings.py` и ставим `*` вместо `olgram`, строка 59:
 ```
     def app_host(cls) -> str:
         return "*"
@@ -240,7 +240,7 @@ REDIS_PATH=redis://redis
 
 **Запускаем сервис:**
 
-34. `cd ~/olgram && docker-compose up -d`
+33. `cd ~/olgram && docker-compose up -d`
 
 В самом хорошем варианте - это всё. Можно заходить в телеграм и настраивать/добавлять ботов.
 
