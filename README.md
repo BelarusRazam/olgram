@@ -65,6 +65,7 @@ sudo docker-compose up -d
 4. `apt autoremove --purge`
 
 Устанавливаем docker:
+
 5. `apt install ca-certificates curl gnupg lsb-release`
 6. `curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg`
 7. `echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null`
@@ -75,6 +76,7 @@ sudo docker-compose up -d
 12. `ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
 
 Доработка напильником:
+
 13. `apt install localepurge`
 14. `apt install mc gawk lynx vim-nox catdoc p7zip-full dbview odt2txt tmux`
 15. `adduser tguser`   # добавляем пользователя, вместо "tguser" пишем свое имя для добавляемого пользователя
@@ -92,13 +94,14 @@ sudo docker-compose up -d
 Схема такая: запускаем отдельно докер с **Traefik** (вдруг он где-то ещё пригодится), а сам сервис **Оlgram** подключаем к нему.
 
 **Перелогиниваемся под `tguser`**
+
 25. `docker network create traefik`
 26. `mkdir ~/traefik; touch ~/traefik/docker-compose.yml`
 27. в редакторе правим файл: `mcedit ~/traefik/docker-compose.yml`:
 ```
 version: '3.7'
 
-28. services:
+services:
   traefik:
     image: traefik:v2.5.7
     container_name: traefik
