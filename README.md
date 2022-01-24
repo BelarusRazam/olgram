@@ -172,8 +172,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    volumes:                                          # оставляем, если нужно
-      - ./olgram/settings.py:/app/olgram/settings.py  # вносить правки в файл settings.py. Иначе - закомментировать.
+    volumes:
+      - ./olgram/settings.py:/app/olgram/settings.py  # нам нужно внести правку в файл settings.py
     labels:
       - traefik.enable=true
       - traefik.http.routers.olgram.rule=Host(`mydomaingram.org`) # тут важный нюанс - нужно указать реальный домен
