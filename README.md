@@ -44,3 +44,208 @@ sudo docker-compose up -d
 хоста по Webhook бота.
 
 Пример более сложной конфигурации есть в файле docker-compose-full.yaml
+
+### Рассмотрим реально работающий пример
+
+1. Покупка/аренда VPS (ниже вариант с Ubuntu 20.04).
+   1. Выясняем и записываем IP адрес сервера.
+2. Покупка/аренда домена, к примеру `mydomaingram.org`. В чистом виде, какой именно домен -- не важно, это чисто техническая работа, важен сам факт доменного имени.
+3. Бесплатная регистрация на cloudflare.com.
+   1. На вкладке DNS создаем запись типа `А`, в поле `Name` прописываем наш домен, в поле `IPv4 address` - IP адрес сервера
+   2. Запоминаем `Cloudflare Nameservers`.
+4. В сервисе регистратора доменного имени из п.2 прописываем NS-сервера, указанные в п.3.1, что-то типа `buck.ns.cloudflare.com`.
+5. Можно настроить DNSSEC, если получится. Для нашего процесса это не важно.
+
+#### Подготовка сервера
+
+0. **Под root'ом:**
+1. `apt update`
+2. `apt install bash-comletion `
+3. `apt dist-upgrade`
+4. `apt autoremove --purge`
+
+Устанавливаем docker:
+
+5. `apt install ca-certificates curl gnupg lsb-release`
+6. `curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg`
+7. `echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null`
+8. `apt update`
+9. `apt install docker-ce docker-ce-cli containerd.io`
+10. `curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose`
+11. `chmod +x /usr/local/bin/docker-compose`
+12. `ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
+
+Доработка напильником:
+
+13. `apt install localepurge`
+14. `apt install mc gawk lynx vim-nox catdoc p7zip-full dbview odt2txt tmux`
+15. `adduser tguser`   # добавляем пользователя, вместо "tguser" пишем свое имя для добавляемого пользователя
+16. `usermod -aG sudo tguser`
+17. `usermod -aG docker tguser`
+18. `apt install ufw`  # устанавливаем firewall
+19. `ufw disable`
+20. `ufw enable`
+21. `ufw allow 80/tcp`
+22. `ufw allow 443/tcp`
+23. `ufw allow 8443/tcp`
+
+#### Настройка докеров
+
+Схема такая: запускаем отдельно докер с **Traefik** (вдруг он где-то ещё пригодится), а сам сервис **Оlgram** подключаем к нему.
+
+**Перелогиниваемся под `tguser`**
+
+24. `docker network create traefik`
+25. `mkdir ~/traefik; touch ~/traefik/docker-compose.yml`
+26. в редакторе правим файл: `mcedit ~/traefik/docker-compose.yml`:
+```
+version: '3.7'
+
+services:
+  traefik:
+    image: traefik:v2.5.7
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - 80:80 # если нужно привязать к интерфейсу, то формат следующий: 127.0.0.1:80:80
+      - 443:443
+      - 8443:8443
+    networks:
+      - traefik
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure2.address=:8443
+#      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.endpoint=unix:///var/run/docker.sock
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=traefik
+      - --certificatesresolvers.le.acme.email=some.email@protonmail.com
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.tlschallenge=false
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --accesslog=true # это включено для отображения журнала доступа, но если не нужен, то можно закомментить
+      - --log.level=DEBUG # для разработки; можно закомментить, если не нужен подробный вывод лога
+
+networks:
+  traefik:
+    external: true
+```
+
+27. `git clone https://github.com/civsocit/olgram`
+28. `cd ~/olgram`
+29. `mcedit ~/docker-compose.yml`:
+```
+version: '3'
+
+services:
+  postgres:
+    image: postgres:alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./database:/var/lib/postgresql/data
+    networks:
+      - olgram
+
+  redis:
+    image: bitnami/redis:latest
+    restart: unless-stopped
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./redis-db:/bitnami/redis/data
+    env_file:
+      - .env
+    networks: 
+      - olgram
+
+  olgram:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./olgram/settings.py:/app/olgram/settings.py  # нам нужно внести правку в файл settings.py
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.olgram.rule=Host(`mydomaingram.org`) # тут важный нюанс - нужно указать реальный домен
+      - traefik.http.routers.olgram.tls=true
+      - traefik.http.routers.olgram.tls.certresolver=le
+      - traefik.http.routers.olgram.entrypoints=websecure2
+      - traefik.docker.network=traefik
+      - traefik.http.services.olgram.loadbalancer.server.port=80
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - traefik
+      - olgram
+
+networks:
+  traefik:
+    external: true
+  olgram:
+```
+
+30. `mkdir redis-db && sudo chown -R 1001:1001 redis-db/`  # твик для нормального запуска redis
+31. `mcedit .env`:
+```
+# example: 123456789:AAAA-abc123_AbcdEFghijKLMnopqrstu12 (without quotes!)
+BOT_TOKEN=<токен бота для сервиса из @botfather>
+
+# не трогаем
+POSTGRES_USER=olgram
+
+# example: x2y0n27ihiez93kmzj82 (without quotes!)
+POSTGRES_PASSWORD=<генерим случайный пароль>
+
+# не трогаем
+POSTGRES_DB=olgram
+POSTGRES_HOST=postgres
+
+# example: i7flci0mx4z5patxnl6m (without quotes!)
+TOKEN_ENCRYPTION_KEY=<генерим случайный пароль>
+
+# если разрешаем добавлять ботов на сервисе только одному аккаунту, указываем и раскомментируем ниже:
+# ADMIN_ID=5123456789
+
+# указываем id супервайзера, ему доступна команда /info
+SUPERVISOR_ID=<id пользователя с правами супервайзера>
+
+# example: 11.143.142.140 or my_domain.com (without quotes!) -- ваш домен:
+WEBHOOK_HOST=mydomaingram.org
+
+# allowed: 80, 443, 8080, 8443, в нашем случае 8443:
+WEBHOOK_PORT=8443
+# use that if you don't set up your own domain and let's encrypt certificate
+# в данном случае CUSTOM_CERT не нужен, комментим:
+#CUSTOM_CERT=false
+
+# не трогаем
+REDIS_PATH=redis://redis
+```
+32. `mcedit ~/olgram/olgram/settings.py` и ставим `*` вместо `olgram`, строка 59:
+```
+    def app_host(cls) -> str:
+        return "*"
+```
+
+**Запускаем сервис:**
+
+33. `cd ~/olgram && docker-compose up -d`
+
+В самом хорошем варианте - это всё. Можно заходить в телеграм и настраивать/добавлять ботов.
+
+**Полезные команды:**
+
+* `docker ps -a`
+* `docker logs -f traefik`
+* `docker logs -f olgram_olgram_1`
