@@ -1,4 +1,5 @@
 FROM python:3.8-buster
+#FROM python:3.8-alpine
 
 ENV PYTHONUNBUFFERED=1 \
     POETRY_VERSION=1.1.2 \
@@ -8,13 +9,17 @@ RUN apt-get update && \
     apt-get install -y gettext build-essential && \
     apt-get clean && rm -rf /var/cache/apt/* && rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
 
-
 RUN pip install "poetry==$POETRY_VERSION"
 
 WORKDIR /app
 
 COPY pyproject.toml poetry.lock docker-entrypoint.sh ./
-RUN poetry install --no-interaction --no-ansi --no-dev
+
+RUN \
+    apk add --no-cache --virtual .build-deps alpine-sdk postgresql-dev libffi-dev && \
+    pip install "poetry==$POETRY_VERSION" && \
+    poetry install --no-interaction --no-ansi --no-dev && \
+    apk --purge del .build-deps
 
 COPY . /app
 

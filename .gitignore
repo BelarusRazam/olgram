@@ -10,5 +10,6 @@ docs/build
 ad.md
 release.env
 test.py
-backup
-
+database
+redis-db
+docker-compose.yml

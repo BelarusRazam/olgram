@@ -3,3 +3,5 @@ venv
 config.json
 *.yaml
 docs/
+database
+redis-db
