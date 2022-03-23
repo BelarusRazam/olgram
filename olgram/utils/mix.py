@@ -22,8 +22,11 @@ async def edit_or_create(call: CallbackQuery, message: str,
                                     parse_mode=parse_mode)
 
 
-def button_text_limit(data: str) -> str:
-    max_len = 30
+def wrap(data: str, max_len: int) -> str:
     if len(data) > max_len:
         data = data[:max_len-4] + "..."
     return data
+
+
+def button_text_limit(data: str) -> str:
+    return wrap(data, 30)

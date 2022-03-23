@@ -4,7 +4,7 @@
 Как создать бота
 ----------------
 
-Перейдите по ссылке `@Olgram <https://t.me/olgrambot>`_ и нажмите Запустить:
+Перейдите по ссылке `@OlgramBot <https://t.me/olgrambot>`_ и нажмите Запустить:
 
 
 .. image:: ../images/start.jpg

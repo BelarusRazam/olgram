@@ -1,6 +1,7 @@
 import aiogram.types as types
 from aiogram.dispatcher.handler import CancelHandler, current_handler
 from aiogram.dispatcher.middlewares import BaseMiddleware
+from locales.locale import _
 
 
 def public():
@@ -36,7 +37,7 @@ class AccessMiddleware(BaseMiddleware):
             return
 
         if message.chat.id != admin_id:
-            await message.answer("Владелец бота ограничил доступ к этому функционалу 😞")
+            await message.answer(_("Владелец бота ограничил доступ к этому функционалу 😞"))
             raise CancelHandler()
 
     async def on_process_callback_query(self, call: types.CallbackQuery, data: dict):
@@ -48,5 +49,5 @@ class AccessMiddleware(BaseMiddleware):
             return
 
         if call.message.chat.id != admin_id:
-            await call.answer("Владелец бота ограничил доступ к этому функционалу😞")
+            await call.answer(_("Владелец бота ограничил доступ к этому функционалу😞"))
             raise CancelHandler()

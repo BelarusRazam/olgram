@@ -12,6 +12,7 @@ import olgram.commands.start  # noqa: F401
 import olgram.commands.menu  # noqa: F401
 import olgram.commands.bot_actions  # noqa: F401
 import olgram.commands.info  # noqa: F401
+from locales.locale import _
 
 from server.server import main as server_main
 
@@ -26,10 +27,10 @@ async def init_olgram():
     from aiogram.types import BotCommand
     await bot.set_my_commands(
         [
-            BotCommand("start", "Запустить бота"),
-            BotCommand("addbot", "Добавить бот"),
-            BotCommand("mybots", "Управление ботами"),
-            BotCommand("help", "Справка")
+            BotCommand("start", _("Запустить бота")),
+            BotCommand("addbot", _("Добавить бот")),
+            BotCommand("mybots", _("Управление ботами")),
+            BotCommand("help", _("Справка"))
         ]
     )
 
@@ -41,19 +42,20 @@ async def initialization():
 
 
 def main():
-    """
-    Classic polling
-    """
-    parser = argparse.ArgumentParser("Olgram server")
-    parser.add_argument("--noserver", help="Не запускать сервер обратной связи, только сам Olgram (режим для "
-                                           "разработки)", action="store_true")
+    parser = argparse.ArgumentParser("Olgram bot and feedback server")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--noserver", help="Не запускать сервер обратной связи, только сам Olgram", action="store_true")
+    group.add_argument("--onlyserver", help="Запустить только сервер обратной связи, без Olgram", action="store_true")
     args = parser.parse_args()
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(initialization())
 
-    loop.create_task(dp.start_polling())
+    if not args.onlyserver:
+        print("Run olgram polling")
+        loop.create_task(dp.start_polling())
     if not args.noserver:
+        print("Run olgram server")
         loop.create_task(server_main().start())
 
     loop.run_forever()

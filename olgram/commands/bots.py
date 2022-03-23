@@ -12,6 +12,7 @@ from olgram.models.models import Bot, User
 from olgram.settings import OlgramSettings
 from olgram.commands.menu import send_bots_menu
 from server.server import register_token
+from locales.locale import _
 
 from olgram.router import dp
 
@@ -38,10 +39,10 @@ async def add_bot(message: types.Message, state: FSMContext):
     """
     bot_count = await Bot.filter(owner__telegram_id=message.from_user.id).count()
     if bot_count >= OlgramSettings.max_bots_per_user():
-        await message.answer("У вас уже слишком много ботов.")
+        await message.answer(_("У вас уже слишком много ботов."))
         return
 
-    await message.answer(dedent("""
+    await message.answer(dedent(_("""
     Чтобы подключить бот, вам нужно выполнить три действия:
 
     1. Перейдите в бот @BotFather, нажмите START и отправьте команду /newbot
@@ -49,7 +50,7 @@ async def add_bot(message: types.Message, state: FSMContext):
     3. После создания бота перешлите ответное сообщение в этот бот или скопируйте и пришлите token бота.
 
     Важно: не подключайте боты, которые используются в других сервисах (Manybot, Chatfuel, Livegram и других).
-    """))
+    """)))
     await state.set_state("add_bot")
 
 
@@ -61,26 +62,26 @@ async def bot_added(message: types.Message, state: FSMContext):
     token = re.findall(token_pattern, message.text)
 
     async def on_invalid_token():
-        await message.answer(dedent("""
+        await message.answer(dedent(_("""
         Это не токен бота.
 
         Токен выглядит вот так: 123456789:AAAA-abc123_AbcdEFghijKLMnopqrstu12
-        """))
+        """)))
 
     async def on_dummy_token():
-        await message.answer(dedent("""
+        await message.answer(dedent(_("""
         Не удалось запустить этого бота: неверный токен
-        """))
+        """)))
 
     async def on_unknown_error():
-        await message.answer(dedent("""
+        await message.answer(dedent(_("""
         Не удалось запустить этого бота: непредвиденная ошибка
-        """))
+        """)))
 
     async def on_duplication_bot():
-        await message.answer(dedent("""
+        await message.answer(dedent(_("""
         Такой бот уже есть в базе данных
-        """))
+        """)))
 
     if not token:
         return await on_invalid_token()
@@ -98,7 +99,7 @@ async def bot_added(message: types.Message, state: FSMContext):
     except TelegramAPIError:
         return await on_unknown_error()
 
-    user, _ = await User.get_or_create(telegram_id=message.from_user.id)
+    user, created = await User.get_or_create(telegram_id=message.from_user.id)
     bot = Bot(token=Bot.encrypted_token(token), owner=user, name=test_bot_info.username,
               super_chat_id=message.from_user.id)
     try:
@@ -110,5 +111,5 @@ async def bot_added(message: types.Message, state: FSMContext):
         await bot.delete()
         return await on_unknown_error()
 
-    await message.answer("Бот добавлен! Список ваших ботов: /mybots")
+    await message.answer(_("Бот добавлен! Список ваших ботов: /mybots"))
     await state.reset_state()

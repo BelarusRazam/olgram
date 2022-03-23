@@ -1,8 +1,11 @@
 from dotenv import load_dotenv
 from abc import ABC
-import os, logging
-from olgram.utils.crypto import Cryptor
+import os
+import logging
 from functools import lru_cache
+from datetime import timedelta
+import typing as ty
+from olgram.utils.crypto import Cryptor
 
 
 load_dotenv()
@@ -30,7 +33,7 @@ class OlgramSettings(AbstractSettings):
 
     @classmethod
     def version(cls):
-        return "0.2.0"
+        return "0.3.1"
 
     @classmethod
     @lru_cache
@@ -83,7 +86,19 @@ class ServerSettings(AbstractSettings):
     def append_text(cls) -> str:
         return "\n\nЭтот бот создан с помощью @OlgramBot"
 
-    logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+    @classmethod
+    @lru_cache
+    def redis_timeout_ms(cls) -> ty.Optional[int]:
+        return int(timedelta(days=20).total_seconds() * 1000.0)
+
+    @classmethod
+    @lru_cache
+    def thread_timeout_ms(cls) -> int:
+        return int(timedelta(days=1).total_seconds() * 1000.0)
+
+
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "WARNING"))
+
 
 class BotSettings(AbstractSettings):
     @classmethod
@@ -93,6 +108,14 @@ class BotSettings(AbstractSettings):
         :return:
         """
         return cls._get_env("BOT_TOKEN")
+
+    @classmethod
+    def language(cls) -> str:
+        """
+        Язык
+        """
+        lang = cls._get_env("O_LANG", allow_none=True)
+        return lang.lower() if lang else "ru"
 
 
 class DatabaseSettings(AbstractSettings):

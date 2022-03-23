@@ -342,6 +342,14 @@ python-versions = ">=3.5"
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "python-gettext"
+version = "4.0"
+description = "Python Gettext po to mo file compiler."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pytz"
 version = "2020.5"
 description = "World timezone definitions, modern and historical"
@@ -393,7 +401,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "20aec5e4517c3e0bc03d4410544c1c898f0469c9bcfc4f4fecf4c405b1765ded"
+content-hash = "9151864c69f349148a36cc7551bb54fd240229eb2533e92b82a0f85a251a56f3"
 
 [metadata.files]
 aerich = [
@@ -824,6 +832,9 @@ pypika-tortoise = [
 python-dotenv = [
     {file = "python-dotenv-0.19.2.tar.gz", hash = "sha256:a5de49a31e953b45ff2d2fd434bbc2670e8db5273606c1e737cc6b93eff3655f"},
     {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
+]
+python-gettext = [
+    {file = "python-gettext-4.0.tar.gz", hash = "sha256:626b501a51ac892fc3460cf550e60dca121f544eaa46eb69c90ce4682fc7ec02"},
 ]
 pytz = [
     {file = "pytz-2020.5-py2.py3-none-any.whl", hash = "sha256:16962c5fb8db4a8f63a26646d8886e9d769b6c511543557bc84e9569fb9a9cb4"},
